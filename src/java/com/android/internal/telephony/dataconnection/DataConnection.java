@@ -1031,9 +1031,10 @@ public class DataConnection extends StateMachine {
         // NR 5G Non-Standalone use LTE cell as the primary cell, the ril technology is LTE in this
         // case. We use NR 5G TCP buffer size when connected to NR 5G Non-Standalone network.
         if (mTransportType == AccessNetworkConstants.TRANSPORT_TYPE_WWAN
-                && (rilRat == ServiceState.RIL_RADIO_TECHNOLOGY_LTE
-                    || rilRat == ServiceState.RIL_RADIO_TECHNOLOGY_LTE_CA)
-                && isNRConnected()
+                && (
+                    rilRat == ServiceState.RIL_RADIO_TECHNOLOGY_LTE 
+                    || rilRat == ServiceState.RIL_RADIO_TECHNOLOGY_LTE_CA
+                ) && isNRConnected()
                 && mPhone.getServiceStateTracker().getNrContextIds().contains(mCid)) {
             ratName = RAT_NAME_5G;
         }
@@ -1825,12 +1826,13 @@ public class DataConnection extends StateMachine {
                     return HANDLED;
                 case EVENT_CONNECT:
                     if (DBG) log("DcInactiveState: mag.what=EVENT_CONNECT");
-                    if (isPdpRejectConfigEnabled() && !isDataCallConnectAllowed()) {
-                        if (DBG) log("DcInactiveState: skip EVENT_CONNECT");
-                        return HANDLED;
-                    }
 
                     ConnectionParams cp = (ConnectionParams) msg.obj;
+                    if (isPdpRejectConfigEnabled() && !isDataCallConnectAllowed()) {
+                        if (DBG) log("DcInactiveState: skip EVENT_CONNECT");
+                        cp.mApnContext.decAndGetConnectionGeneration();
+                        return HANDLED;
+                    }
 
                     if (!initConnection(cp)) {
                         log("DcInactiveState: msg.what=EVENT_CONNECT initConnection failed");
